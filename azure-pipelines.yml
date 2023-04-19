@@ -1,17 +1,25 @@
 trigger:
 - main
 
-pool:
-  vmImage: ubuntu-latest
+resources:
+- repo: self
 
-steps:
-- task: Maven@3
-  inputs:
-    mavenPomFile: 'pom.xml'
-    mavenOptions: '-Xmx3072m'
-    javaHomeOption: 'JDKVersion'
-    jdkVersionOption: '1.11'
-    jdkArchitectureOption: 'x64'
-    publishJUnitResults: true
-    testResultsFiles: '**/surefire-reports/TEST-*.xml'
-    goals: 'package'
+stages:
+- stage: BuildandpublishtoACR
+  displayName: Build and publish to ACR
+
+  jobs:
+  - job: Build
+    displayName: Build project
+    pool:
+      name: default
+      vmImage: myVM
+
+    steps:
+    - task: Docker@2
+      displayName: Build docker Image
+      inputs:
+        containerRegistry: 'POCcontainerdtmt'
+        repository: 'JavaPOCImage/provider'
+        command: 'buildAndPush'
+        Dockerfile: '$(Build.SourcesDirectory)/Dockerfile'
